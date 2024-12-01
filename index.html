@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Query Params Handler</title>
+</head>
+<body>
+    <h1>Обработка данных из URL</h1>
+    <div id="output"></div>
+
+    <script>
+        // Получаем текущий URL
+        const currentUrl = window.location.href;
+
+        // Создаем объект URL
+        const url = new URL(currentUrl);
+
+        // Получаем параметры запроса
+        const params = new URLSearchParams(url.search);
+
+        // Извлекаем значение из параметра 'data'
+        const data = params.get('data');
+
+        // Элемент вывода
+        const outputDiv = document.getElementById('output');
+
+        // Проверяем наличие данных
+        if (data) {
+            try {
+                // Парсим JSON-строку
+                const parsedData = JSON.parse(data);
+                const webhook = parsedData.webhook;
+                const payload = parsedData.data;
+
+                // Выводим данные на страницу
+                outputDiv.innerHTML = `<p>Полученные данные: <strong>${JSON.stringify(parsedData, null, 2)}</strong></p>`;
+
+                // Отправляем запрос на вебхук
+                fetch(webhook, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(response => {
+                    if (response.ok) {
+                        outputDiv.innerHTML += `<p>Запрос успешно отправлен.</p>`;
+                    } else {
+                        outputDiv.innerHTML += `<p>Ошибка при отправке запроса: ${response.status} ${response.statusText}</p>`;
+                    }
+                })
+                .catch(error => {
+                    outputDiv.innerHTML += `<p>Ошибка: ${error.message}</p>`;
+                });
+
+            } catch (error) {
+                outputDiv.innerHTML += `<p>Ошибка при обработке данных: ${error.message}</p>`;
+            }
+        } else {
+            outputDiv.innerHTML += `<p>Параметр 'data' не найден в URL.</p>`;
+        }
+    </script>
+</body>
+</html>
